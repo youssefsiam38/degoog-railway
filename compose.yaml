@@ -1,0 +1,25 @@
+# Local test topology. A single service mirrors the Railway service:
+#   degoog -> the metasearch server (official image), config + data on a /app/data volume, port 4444.
+# The template runs the official image unmodified, so there is nothing to build.
+name: degoog-railway-test
+
+networks:
+  default:
+    name: degoog-railway-test
+
+services:
+  degoog:
+    image: ghcr.io/degoog-org/degoog:0.26.0@sha256:69e28fe2dc8008981b0ea8b9270f6b5b482d107b8a3dfa71d8acdac37f4b77c0
+    restart: unless-stopped
+    environment:
+      DEGOOG_PORT: '4444'
+      # The settings/extensions area MUST be password-protected: an unlocked instance lets anyone install
+      # extensions, which run code on the server. On Railway this is a generated secret.
+      DEGOOG_SETTINGS_PASSWORDS: ${DEGOOG_TEST_SETTINGS_PASSWORD:-local-test-only-settings-password}
+    ports:
+      - '127.0.0.1:${DEGOOG_TEST_PORT:-14444}:4444'
+    volumes:
+      - data:/app/data
+
+volumes:
+  data:
